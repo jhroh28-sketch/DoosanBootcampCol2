@@ -1,14 +1,13 @@
 
-from langchain.chat_models import ChatOpenAI
-import openai
+from openai import OpenAI
 import sounddevice as sd
 import scipy.io.wavfile as wav
-import numpy as np
 import tempfile
 
 class STT:
     def __init__(self, openai_api_key):
-        self.openai_api_key = openai_api_key
+        self.client = OpenAI(api_key=openai_api_key)
+        # self.openai_api_key = openai_api_key
         self.duration = 5  # seconds
         self.samplerate = 16000  # Whisper는 16kHz를 선호
 
@@ -26,11 +25,8 @@ class STT:
 
             # Whisper API 호출
             with open(temp_wav.name, "rb") as f:
-                transcript = openai.Audio.transcribe(
-                    model="whisper-1",
-                    file=f,
-                    api_key=self.openai_api_key
-                )
+                transcript = self.client.audio.transcriptions.create(
+                    model="whisper-1", file=f)
 
         print("STT 결과: ", transcript['text'])
         return transcript['text']

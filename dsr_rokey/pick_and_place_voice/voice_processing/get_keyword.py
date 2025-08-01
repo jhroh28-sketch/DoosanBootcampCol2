@@ -7,9 +7,9 @@ from rclpy.node import Node
 
 from ament_index_python.packages import get_package_share_directory
 from dotenv import load_dotenv
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+# from langchain.chains import LLMChain
 
 from std_srvs.srv import Trigger
 from voice_processing.MicController import MicController, MicConfig
@@ -82,7 +82,8 @@ class GetKeyword(Node):
         self.prompt_template = PromptTemplate(
             input_variables=["user_input"], template=prompt_content
         )
-        self.lang_chain = LLMChain(llm=self.llm, prompt=self.prompt_template)
+        self.lang_chain = self.prompt_template | self.llm
+        # self.lang_chain = LLMChain(llm=self.llm, prompt=self.prompt_template)
         self.stt = STT(openai_api_key=openai_api_key)
 
 
@@ -109,7 +110,7 @@ class GetKeyword(Node):
 
     def extract_keyword(self, output_message):
         response = self.lang_chain.invoke({"user_input": output_message})
-        result = response["text"]
+        result = response.content
 
         object, target = result.strip().split("/")
 
